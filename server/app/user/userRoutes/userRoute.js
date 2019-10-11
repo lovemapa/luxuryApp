@@ -34,7 +34,7 @@ userRoute.route('/register')
   .post((req, res) => {
     userController.signUp(req.body).then(result => {
       return res.json({
-        success: CONSTANT.TRUE,
+        success: CONSTANT.TRUESTATUS,
         data: result,
         message: result.message,
 

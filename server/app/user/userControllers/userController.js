@@ -1,12 +1,9 @@
 'use strict'
 const userModel = require('../../../models/userModel')
 const ownerModel = require('../../../models/ownerModel')
-// const bookingModel = require('../../../models/bookingModel')
-// const serviceModel = require('../../../models/serviceModel')
 const CONSTANT = require('../../../constant')
 const commonFunctions = require('../../common/controllers/commonFunctions')
 const commonController = require('../../common/controllers/commonController')
-// const favouritesModel = require('../../../models/favouritesModel')
 const moment = require('moment')
 const rn = require('random-number')
 const userIssue = require('../../../models/usersIssueModel')
@@ -14,7 +11,7 @@ var CronJob = require('cron').CronJob;
 
 
 
-class charity {
+class carRent {
     signUp(data) {
 
         return new Promise((resolve, reject) => {
@@ -29,13 +26,15 @@ class charity {
                     integer: true
                 })
                 date: moment().valueOf()
-                const user = new userModel({
-                    contact: data.contact,
-                    token: token,
-                    date: moment().valueOf()
-                })
-                user.save().then((result) => {
-                    resolve(result)
+                const user = this.createUser(data)
+                user.save().then((saveresult) => {
+                    resolve({ message: CONSTANT.VERIFYMAIL, result: saveresult })
+                    commonController.sendMailandVerify(saveresult.email, saveresult._id, token, 'user', result => {
+                        if (result.status === 1)
+                            console.log(result.message.response);
+                        else
+                            reject(result.message)
+                    })
                 }).catch(error => {
                     if (error.errors)
                         return reject(commonController.handleValidation(error))
@@ -45,6 +44,24 @@ class charity {
                 })
             }
         })
+    }
+
+    createUser(data) {
+        if (data.password)
+            data.password = commonFunctions.hashPassword(data.password)
+        const user = new userModel({
+            email: data.email,
+            countryCode: data.countryCode,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            address: data.address,
+            password: data.password,
+            contact: data.contact,
+            token: data.token,
+            city: data.city,
+            date: moment().valueOf()
+        })
+        return user
     }
 
     // Complete owner Profile
@@ -507,4 +524,4 @@ class charity {
 
 }
 
-module.exports = new charity();
+module.exports = new carRent();

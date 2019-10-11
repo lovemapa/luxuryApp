@@ -36,7 +36,24 @@ class commonController {
         const decryptedEmail = await decrypt(email);
         return decryptedEmail;
     }
-    sendMail(email, token, cb) {
+
+    sendMail(email, _id, token, type, cb) {
+
+        var route;
+        if (type == 'user')
+            route = 'user'
+        else
+            route = 'service'
+        var html, subject
+        if (_id == undefined || token == undefined) {
+            subject = 'Account verifciation'
+            html = `<p><a href='http://192.168.1.11:8081/api/${route}/verify/'>Click this link to verfiy</a></p>`
+        }
+        else {
+            subject = 'Request for Change Password'
+            html = `<p><a href='http://192.168.1.11:8081/api/${route}/forgetpassword/?token=${token}&user=${_id}'>click here to change password</a></p>`
+
+        }
         var smtpConfig = {
             host: 'smtp.gmail.com',
             port: 465,
@@ -50,8 +67,8 @@ class commonController {
         const mailOptions = {
             from: 'pk1605199432@gmail.com', // sender address
             to: email, // list of receivers
-            subject: 'Verification Mail', // Subject line
-            html: `<p>Hello ${email} your token is ${token} </p>`
+            subject: subject, // Subject line
+            html: html
 
         };
         transporter.sendMail(mailOptions, function (error, info) {
@@ -68,7 +85,47 @@ class commonController {
     }
 
 
+    sendMailandVerify(email, _id, token, type, cb) {
 
+        var route;
+        if (type == 'user')
+            route = 'user'
+        else
+            route = 'service'
+        var html, subject
+
+        subject = 'Account verifciation'
+        html = `<p><a href='http://192.168.1.11:8081/api/${route}/verify/?token=${token}&user=${_id}'>Click this link to verfiy</a></p>`
+
+        var smtpConfig = {
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // use SSL
+            auth: {
+                user: 'pk1605199432@gmail.com',
+                pass: 'lovemapa!23'
+            }
+        };
+        const transporter = nodemailer.createTransport(smtpConfig);
+        const mailOptions = {
+            from: 'pk1605199432@gmail.com', // sender address
+            to: email, // list of receivers
+            subject: subject, // Subject line
+            html: html
+
+        };
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log('email sending failed ' + error);
+                cb({ status: 0, message: error })
+            }
+            else {
+                cb({ status: 1, message: info })
+
+            }
+            transporter.close();
+        });
+    }
 
 }
 

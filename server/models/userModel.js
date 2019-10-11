@@ -9,13 +9,11 @@ var userModelSchema = new Schema({
     firstName: { type: String },
     lastName: { type: String },
     password: { type: String },
-    socialMedia: { type: String },
-    status: { type: Number, default: 1 }, // 0 (offline)  1 (online)
+    address: { type: String },
+    username: { type: String },
     date: { type: Number },
     profilePic: { type: String, default: '/default.png' },
     isDeleted: { type: Number, default: 0 },
-    country: { type: String },
-    state: { type: String },
     city: { type: String },
     isVerified: { type: Boolean, default: false },
     token: Number
