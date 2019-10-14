@@ -5,8 +5,8 @@ const Schema = mongoose.Schema;
 
 var ownerModelSchema = new Schema({
 
-    contact: { type: String, unique: true },
-    // email: { type: String, unique: true },
+    // contact: { type: String, unique: true },
+    email: { type: String, unique: true },
     firstName: { type: String },
     lastName: { type: String },
     password: { type: String },
@@ -24,6 +24,7 @@ var ownerModelSchema = new Schema({
     currentCoordinates: [{ type: Number }],
     currentLat: { type: Number },
     currentLong: { type: Number },
+    verificationPhotos: [{ type: String }]
 
 
 

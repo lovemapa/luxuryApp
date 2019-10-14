@@ -47,11 +47,11 @@ class commonController {
         var html, subject
         if (_id == undefined || token == undefined) {
             subject = 'Account verifciation'
-            html = `<p><a href='http://192.168.1.11:8081/api/${route}/verify/'>Click this link to verfiy</a></p>`
+            html = `<p><a href='http://192.168.1.11:4002/api/${route}/verify/'>Click this link to verfiy</a></p>`
         }
         else {
             subject = 'Request for Change Password'
-            html = `<p><a href='http://192.168.1.11:8081/api/${route}/forgetpassword/?token=${token}&user=${_id}'>click here to change password</a></p>`
+            html = `<p><a href='http://192.168.1.11:4002/api/${route}/forgetpassword/?token=${token}&user=${_id}'>click here to change password</a></p>`
 
         }
         var smtpConfig = {
@@ -95,7 +95,7 @@ class commonController {
         var html, subject
 
         subject = 'Account verifciation'
-        html = `<p><a href='http://192.168.1.11:8081/api/${route}/verify/?token=${token}&user=${_id}'>Click this link to verfiy</a></p>`
+        html = `<p><a href='http://192.168.1.11:4002/api/${route}/verify/?token=${token}&user=${_id}'>Click this link to verfiy</a></p>`
 
         var smtpConfig = {
             host: 'smtp.gmail.com',

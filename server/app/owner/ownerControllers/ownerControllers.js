@@ -15,8 +15,9 @@ class owner {
     //Owner Signup
     signUp(data, files) {
         return new Promise((resolve, reject) => {
+            console.log(data);
 
-            if (!data.contact) {
+            if (!data.email || !data.password) {
                 reject(CONSTANT.MISSINGPARAMS)
             }
             else {
@@ -25,9 +26,27 @@ class owner {
                     max: 9999,
                     integer: true
                 })
-                date: moment().valueOf()
+                files.profilePic.map(result => {
+                    data.profilePic = '/' + result.filename
+
+                });
+                var verificationPhotos = []
+                files.verificationPhotos.map(result => {
+                    verificationPhotos.push('/' + result.filename);
+
+                });
+                data.verificationPhotos = verificationPhotos
+                data.token = token
+
+                console.log(verificationPhotos, data.profilePic);
+
                 const owner = new ownerModel({
-                    contact: data.contact,
+                    email: data.email,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    profilePic: data.profilePic,
+                    verificationPhotos: data.verificationPhotos,
+                    password: commonFunctions.hashPassword(data.password),
                     token: token,
                     date: moment().valueOf()
                 })
@@ -46,10 +65,12 @@ class owner {
                     })
                     resolve(result)
                 }).catch(error => {
+                    console.log(error.code);
+
                     if (error.errors)
                         return reject(commonController.handleValidation(error))
                     if (error.code === 11000)
-                        return reject(CONSTANT.MOBILEREGISTERED)
+                        return reject(CONSTANT.EXISTSMSG)
                     return reject(error)
                 })
             }
@@ -106,13 +127,20 @@ class owner {
 
 
 
-    updateVehicle(data) {
+    updateVehicle(data, files) {
         return new Promise((resolve, reject) => {
-            if (!data.ownerId) {
-                reject(CONSTANT.MISSINGPARAMS)
+            if (!data.ownerId || !files) {
+                reject(CONSTANT.MISSINGPARAMSORFILES)
             }
             else {
+                var vehiclePics = []
+                files.vehiclePics.map(result => {
+                    vehiclePics.push('/' + result.filename);
+
+                });
                 let query = {}
+                if (files)
+                    query.vehiclePics = vehiclePics
                 if (data.vehicleType)
                     query.vehicleType = data.vehicleType
                 if (data.vehicleModel)
@@ -127,8 +155,9 @@ class owner {
                     query.condition = data.condition
                 if (data.makeOfCar)
                     query.makeOfCar = data.makeOfCar
-                if (data.additionalPrice)
-                    query.additionalPrice = data.additionalPrice
+
+                if (data.hourlyRate)
+                    query.hourlyRate = data.hourlyRate
 
 
                 vehicleModel.findOneAndUpdate({ ownerId: data.ownerId }, { $set: query }, { new: true }).then(update => {

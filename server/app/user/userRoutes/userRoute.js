@@ -13,11 +13,7 @@ const storage = multer.diskStorage({
     cb(
       null,
       "img_" +
-      rn({
-        min: 1001,
-        max: 9999,
-        integer: true
-      }) +
+     +
       "_" +
       Date.now() +
       ".jpeg"
@@ -31,8 +27,8 @@ let userRoute = express.Router()
 
 // Save Details of user
 userRoute.route('/register')
-  .post((req, res) => {
-    userController.signUp(req.body).then(result => {
+  .post(upload.fields([{ name: 'profilePic', maxCount: 1 }]), (req, res) => {
+    userController.signUp(req.body, req.files).then(result => {
       return res.json({
         success: CONSTANT.TRUESTATUS,
         data: result,
@@ -65,6 +61,9 @@ userRoute.route('/completeProfile')
       return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
     })
   })
+
+
+
 // User Login Email Password
 userRoute.route('/login')
   .post((req, res) => {
@@ -83,6 +82,19 @@ userRoute.route('/login')
   })
 
 
+userRoute.route('/verify')
+  .get((req, res) => {
+    userController.verify(req.query).then(result => {
+
+      return res.send(`<h1 style="text-align:center; font-size:100px" >Verified successfully</h1>`)
+    }).catch(error => {
+      console.log(error);
+
+      return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+    })
+
+  })
+
 
 //Verify and send activation Mail to user 
 userRoute.route('/verifyEmail')
@@ -99,9 +111,8 @@ userRoute.route('/verifyEmail')
     })
   })
 
-//Resend verification mail incase it failed 
 userRoute.route('/resendVerification')
-  .patch((req, res) => {
+  .put((req, res) => {
     userController.resendVerification(req.body).then(result => {
       return res.send({
         success: CONSTANT.TRUE,
@@ -114,6 +125,59 @@ userRoute.route('/resendVerification')
       return res.json({ message: err, success: CONSTANT.FALSE })
 
     })
+  })
+
+userRoute.route('/forgetpassword').
+  get((req, res) => {
+    if (!(req.query.user || req.query.token)) {
+      res.redirect('/server/app/views/404-page')
+    }
+    let message = req.flash('errm');
+    console.log("messagev", message);
+
+    res.render('forgetPassword', { title: 'Forget password', message })
+  })
+
+
+
+
+//Forgot Password
+
+userRoute.route('/forget-password')
+  .post((req, res) => {
+
+    userController.forgotPassword(req.body).then(result => {
+      return res.json({
+        status: CONSTANT.TRUE,
+        message: CONSTANT.CHANGEPASSWORDLINK
+
+      })
+    }).catch(error => {
+      console.log("error", error);
+
+      return res.json({ message: error, status: CONSTANT.FALSESTATUS })
+    })
+  })
+
+
+// Verify Passowrd
+
+userRoute.route('/forgetpassword').
+  post((req, res) => {
+    userController.forgetPasswordVerify(req.body, req.query).then(
+      message => {
+        res.render('forgetPassword', { message: message, title: 'Forget password' })
+      },
+      err => {
+        if (err.expired) {
+          return res.send(`<h1 style="text-align:center; font-size:100px" >Forget password link has been expired.</h1>`)
+        }
+        req.flash('errm', err)
+
+        let url = `/api/user/forgetpassword?token=${req.query.token}&user=${req.query.user}`
+        res.redirect(url)
+      }
+    )
   })
 
 userRoute.route('/completeRegistration')

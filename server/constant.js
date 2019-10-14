@@ -2,6 +2,7 @@ let constant = {
     TRUESTATUS: 1,
     FALSESTATUS: 0,
     MISSINGPARAMS: 'Please provide  params',
+    MISSINGPARAMSORFILES: 'Either file or Params are missing',
     CHANGEPASSWORDLINK: 'Link for change password has been sent on your email',
     TRUE: true,
     FALSE: false,

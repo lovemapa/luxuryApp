@@ -31,9 +31,8 @@ let ownerRoute = express.Router()
 //Owner Register
 
 ownerRoute.route('/signup')
-    .post((req, res) => {
-
-        ownerController.signUp(req.body).then(result => {
+    .post(upload.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'verificationPhotos', maxCount: 6 }]), (req, res) => {
+        ownerController.signUp(req.body, req.files).then(result => {
             return res.json({
                 success: CONSTANT.TRUE,
                 data: result,
@@ -41,7 +40,6 @@ ownerRoute.route('/signup')
 
             })
         }).catch(error => {
-            console.log("error", error);
 
             return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
         })
@@ -67,9 +65,9 @@ ownerRoute.route('/completeProfile')
     })
 
 ownerRoute.route('/updateVehicle')
-    .patch((req, res) => {
+    .put(upload.fields([{ name: 'vehiclePics', maxCount: 6 }]), (req, res) => {
 
-        ownerController.updateVehicle(req.body).then(result => {
+        ownerController.updateVehicle(req.body, req.files).then(result => {
             return res.json({
                 success: CONSTANT.TRUE,
                 data: result,

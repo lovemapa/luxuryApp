@@ -12,12 +12,13 @@ var CronJob = require('cron').CronJob;
 
 
 class carRent {
-    signUp(data) {
+    signUp(data, file) {
+        console.log(data);
 
         return new Promise((resolve, reject) => {
 
-            if (!data.contact) {
-                reject(CONSTANT.MISSINGPARAMS)
+            if (!data.email || !data.password || !file || Object.keys(file).length === 0) {
+                reject(CONSTANT.MISSINGPARAMSORFILES)
             }
             else {
                 const token = rn({
@@ -25,7 +26,13 @@ class carRent {
                     max: 9999,
                     integer: true
                 })
-                date: moment().valueOf()
+                file.profilePic.map(result => {
+                    if (result)
+                        data.profilePic = '/' + result.filename
+                    else
+                        data.profilePic = '/' + 'default.png'
+                });
+                data.token = token
                 const user = this.createUser(data)
                 user.save().then((saveresult) => {
                     resolve({ message: CONSTANT.VERIFYMAIL, result: saveresult })
@@ -59,6 +66,10 @@ class carRent {
             contact: data.contact,
             token: data.token,
             city: data.city,
+            street: data.street,
+            cun: data.cun,
+            referralCode: data.referralCode,
+            profilePic: data.profilePic,
             date: moment().valueOf()
         })
         return user
@@ -108,24 +119,66 @@ class carRent {
 
     login(data) {
         return new Promise((resolve, reject) => {
-            if (!data.contact) {
+            if (!data.email || !data.password) {
                 reject(CONSTANT.MISSINGPARAMS)
             }
 
             else {
-                userModel.findOne({ contact: data.contact }).then(result => {
+                userModel.findOne({ email: data.email }).then(result => {
                     if (!result) {
                         reject(CONSTANT.NOTREGISTERED)
                     }
                     else {
-
-                        resolve(result)
+                        if (commonFunctions.compareHash(data.password, result.password) && result.isVerified) {
+                            resolve(result)
+                        }
+                        else {
+                            if (!result.isVerified)
+                                reject(CONSTANT.NOTVERIFIED)
+                            else
+                                reject(CONSTANT.WRONGCREDENTIALS)
+                        }
                     }
                 })
             }
 
         })
     }
+
+    verify(query) {
+        return new Promise((resolve, reject) => {
+            if (!query.user)
+                reject(CONSTANT.MISSINGPARAMS)
+
+            else {
+                userModel.findById(query.user).then(result => {
+                    if (result.token == query.token) {
+                        userModel.findByIdAndUpdate(query.user, { $set: { isVerified: 'true', } }, { new: true }).then(result => {
+                            if (result) {
+
+                                resolve(result)
+
+                            }
+                            else
+                                reject(CONSTANT.NOTREGISTERED)
+                        })
+                            .catch(error => {
+                                if (error.errors)
+                                    return reject(commonController.handleValidation(error))
+                                if (error)
+                                    return reject(error)
+                            })
+                    }
+                    else {
+                        reject("UNAUTHORIZED")
+                    }
+                })
+
+            }
+
+        })
+    }
+
 
     //verification of email
 
@@ -172,7 +225,7 @@ class carRent {
                     if (updateResult == null)
                         reject(CONSTANT.NOTREGISTERED)
                     resolve(updateResult)
-                    commonController.sendMail(data.email, token, result => {
+                    commonController.sendMailandVerify(data.email, updateResult._id, token, 'user', result => {
                         if (result.status === 1)
                             console.log(result.message.response);
 
@@ -184,6 +237,75 @@ class carRent {
         })
 
 
+    }
+
+    forgotPassword(data) {
+        return new Promise((resolve, reject) => {
+            console.log(data);
+
+            if (!data.email)
+                reject('Kindly Provide Email')
+            userModel.findOne({ email: data.email }).then(result => {
+                if (!result) {
+                    reject(CONSTANT.NOTREGISTERED)
+                }
+                else {
+                    const token = rn({
+                        min: 1001,
+                        max: 9999,
+                        integer: true
+                    })
+                    userModel.findOneAndUpdate({ email: data.email }, { $set: { token: token } }).then(updateToken => {
+                        resolve(CONSTANT.VERIFYMAIL)
+                    })
+                    commonController.sendMail(data.email, result._id, token, 'user', (result) => {
+
+                        if (result.status === 1)
+                            console.log(result.message.response);
+
+                        else
+                            reject(result.message)
+                    })
+
+                }
+            })
+
+        })
+    }
+
+    forgetPasswordVerify(body, query) {
+        return new Promise((resolve, reject) => {
+
+            if (body.confirmpassword != body.password)
+                return reject("Password and confirm password not matched.")
+            userModel.findById(query.user).then(
+                result => {
+
+                    if (result && result.token == query.token) {
+
+                        userModel
+                            .findByIdAndUpdate(query.user, {
+                                password: commonFunctions.hashPassword(body.password),
+                                token: ""
+                            })
+                            .then(
+                                result1 => {
+                                    return resolve('Password changed successfully.')
+                                },
+                                err => {
+                                    return reject(err)
+                                }
+                            )
+                    }
+                    else {
+                        return reject({ expired: 1 })
+                    }
+                },
+                err => {
+                    return reject(err)
+                }
+            )
+        })
     }
 
     completeRegistration(data) {
