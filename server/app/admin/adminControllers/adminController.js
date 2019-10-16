@@ -162,6 +162,18 @@ class admin {
         })
     }
 
+    ownerVerify(_id) {
+        return new Promise((resolve, reject) => {
+            ownerModel.findByIdAndUpdate({ _id: _id }, { $set: { isAdminVerified: true } }, { new: true }).then(del => {
+                resolve(del)
+            }).catch(error => {
+                if (error.errors)
+                    return reject(commonController.handleValidation(error))
+                return reject(error)
+            })
+        })
+    }
+
     editService(data, file) {
         return new Promise((resolve, reject) => {
 

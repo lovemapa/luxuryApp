@@ -98,7 +98,23 @@ adminRoute.route('/editService')
 
     })
 
+//Verify Owner
+adminRoute.route('/ownerVerify/:ownerId')
+    .put(upload, (req, res) => {
+        adminController.ownerVerify(req.params.ownerId).then(result => {
+            return res.json({
+                success: CONSTANT.VERFIEDTRUE,
+                data: result,
+                message: CONSTANT.UPDATEMSG,
 
+            })
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+
+    })
 // Login Admin
 adminRoute.route('/login')
     .post(upload, (req, res) => {

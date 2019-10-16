@@ -19,6 +19,7 @@ var ownerModelSchema = new Schema({
     state: { type: String },
     city: { type: String },
     isVerified: { type: Boolean, default: false },
+    isAdminVerified: { type: Boolean, default: false },
     token: Number,
     carType: { type: String },
     currentCoordinates: [{ type: Number }],

@@ -15,7 +15,6 @@ var vehicleModelSchema = new Schema({
     makeOfCar: { type: String, },
     hourlyRate: { type: Number },
     dayRate: { type: Number },
-
     carName: { type: String },
     date: { type: Number }
 

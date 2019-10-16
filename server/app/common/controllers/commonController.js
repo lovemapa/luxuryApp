@@ -43,7 +43,7 @@ class commonController {
         if (type == 'user')
             route = 'user'
         else
-            route = 'service'
+            route = 'owner'
         var html, subject
         if (_id == undefined || token == undefined) {
             subject = 'Account verifciation'
@@ -91,7 +91,7 @@ class commonController {
         if (type == 'user')
             route = 'user'
         else
-            route = 'service'
+            route = 'owner'
         var html, subject
 
         subject = 'Account verifciation'

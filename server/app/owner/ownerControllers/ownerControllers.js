@@ -15,7 +15,6 @@ class owner {
     //Owner Signup
     signUp(data, files) {
         return new Promise((resolve, reject) => {
-            console.log(data);
 
             if (!data.email || !data.password) {
                 reject(CONSTANT.MISSINGPARAMS)
@@ -38,7 +37,7 @@ class owner {
                 data.verificationPhotos = verificationPhotos
                 data.token = token
 
-                console.log(verificationPhotos, data.profilePic);
+
 
                 const owner = new ownerModel({
                     email: data.email,
@@ -50,22 +49,16 @@ class owner {
                     token: token,
                     date: moment().valueOf()
                 })
-                owner.save().then((result) => {
-                    const vehicle = new vehicleModel({
-                        ownerId: result._id,
-                        date: moment().valueOf()
-
+                owner.save().then((saveresult) => {
+                    resolve({ message: CONSTANT.VERIFYMAIL, result: saveresult })
+                    commonController.sendMailandVerify(saveresult.email, saveresult._id, token, 'owner', result => {
+                        if (result.status === 1)
+                            console.log(result.message.response);
+                        else
+                            reject(result.message)
                     })
-                    vehicle.save().then(veh => {
-                        console.log(veh);
-
-                    }).catch(err => {
-                        console.log(err);
-
-                    })
-                    resolve(result)
                 }).catch(error => {
-                    console.log(error.code);
+                    console.log(error);
 
                     if (error.errors)
                         return reject(commonController.handleValidation(error))
@@ -77,6 +70,135 @@ class owner {
         })
     }
 
+
+    verify(query) {
+        return new Promise((resolve, reject) => {
+            if (!query.user)
+                reject(CONSTANT.MISSINGPARAMS)
+
+            else {
+                ownerModel.findById(query.user).then(result => {
+                    if (result.token == query.token) {
+                        ownerModel.findByIdAndUpdate(query.user, { $set: { isVerified: true, } }, { new: true }).then(result => {
+                            if (result) {
+
+                                resolve(result)
+
+                            }
+                            else
+                                reject(CONSTANT.NOTREGISTERED)
+                        })
+                            .catch(error => {
+                                if (error.errors)
+                                    return reject(commonController.handleValidation(error))
+                                if (error)
+                                    return reject(error)
+                            })
+                    }
+                    else {
+                        reject("UNAUTHORIZED")
+                    }
+                })
+
+            }
+
+        })
+    }
+
+
+    resendVerification(data) {
+        return new Promise((resolve, reject) => {
+            if (!data.email)
+                reject(CONSTANT.MISSINGPARAMS)
+            else {
+                const token = rn({
+                    min: 1001,
+                    max: 9999,
+                    integer: true
+                })
+                ownerModel.findOneAndUpdate({ email: data.email }, { $set: { token: token } }, { new: true }).then(updateResult => {
+                    if (updateResult == null)
+                        reject(CONSTANT.NOTREGISTERED)
+                    resolve(updateResult)
+                    commonController.sendMailandVerify(data.email, updateResult._id, token, 'owner', result => {
+                        if (result.status === 1)
+                            console.log(result.message.response);
+
+                        else
+                            reject(CONSTANT.SOMETHINGWRONG)
+                    })
+                })
+            }
+        })
+
+
+    }
+    //Add Vehicle
+    addVehicle(data, files) {
+        return new Promise((resolve, reject) => {
+            console.log(data);
+
+            var vehiclePics = []
+            files.vehiclePics.map(result => {
+                vehiclePics.push('/' + result.filename);
+
+            });
+            if (files)
+                data.vehiclePics = vehiclePics
+
+
+            const vehicle = new vehicleModel({
+                ownerId: data.ownerId,
+                vehicleType: data.vehicleType,
+                vehicleModel: data.vehicleModel,
+                color: data.color,
+                chassis: data.chassis,
+                condition: data.condition,
+                engine: data.engine,
+                makeOfCar: data.makeOfCar,
+                carName: data.carName,
+                hourlyRate: data.hourlyRate,
+                dayRate: data.dayRate,
+                vehiclePics: data.vehiclePics,
+                date: moment().valueOf()
+
+            })
+            vehicle.save().then(vehicle => {
+                resolve(vehicle)
+
+            }).catch(err => {
+                console.log(err);
+
+            })
+        })
+    }
+
+    // display Vehicles list to owner 
+
+    displayVehicles(_id) {
+        return new Promise((resolve, reject) => {
+
+            if (!_id)
+                reject(CONSTANT.OWNERIDMISSING)
+            vehicleModel.find({ ownerId: _id }).select('vehiclePics vehicleType hourlyRate').then(result => {
+                console.log(_id);
+
+                if (!result) {
+                    reject(CONSTANT.NOTREGISTERED)
+                }
+                else {
+
+                    resolve(result)
+                }
+
+            }).catch(err => {
+                if (err.errors)
+                    return reject(commonController.handleValidation(error))
+            })
+
+
+        })
+    }
     // Complete owner Profile
     completeProfile(data, file) {
         return new Promise((resolve, reject) => {
@@ -84,36 +206,13 @@ class owner {
                 reject(CONSTANT.MISSINGPARAMS)
             }
             else {
-                let query = {}
-                file.profilePhoto.map(result => {
-                    data.profilePic = '/' + result.filename
+                var verificationPhotos = []
+                file.verificationPhotos.map(result => {
+                    verificationPhotos.push('/' + result.filename)
 
                 });
-                var currentCoordinates = []
-                if (data.firstName)
-                    query.firstName = data.firstName
-                if (data.lastName)
-                    query.lastName = data.lastName
-                if (data.password)
-                    data.password = commonFunctions.hashPassword(data.password)
-                if (data.country)
-                    query.country = data.country
-                if (data.state)
-                    query.state = data.state
-                if (data.city)
-                    query.city = data.city
-                if (file)
-                    query.profilePic = data.profilePic
-                if (data.currentLat && data.currentLong) {
-                    query.currentLat = data.currentLat
-                    query.currentLong = data.currentLong
-                    currentCoordinates.push(data.currentLong)
-                    currentCoordinates.push(data.currentLat)
-                    console.log(currentCoordinates);
 
-                    query.currentCoordinates = currentCoordinates
-                }
-                ownerModel.findByIdAndUpdate({ _id: data.ownerId }, { $set: query }, { new: true }).then(update => {
+                ownerModel.findByIdAndUpdate({ _id: data.ownerId }, { $set: { verificationPhotos: verificationPhotos } }, { new: true }).then(update => {
                     resolve(update)
                 }).catch(error => {
                     if (error.errors)
@@ -176,19 +275,28 @@ class owner {
     // Owner Login
     login(data) {
         return new Promise((resolve, reject) => {
-            if (!data.contact) {
+            if (!data.email || !data.password) {
                 reject(CONSTANT.MISSINGPARAMS)
             }
+
             else {
-                ownerModel.findOne({ contact: data.contact }).then(result => {
+                ownerModel.findOne({ email: data.email }).then(result => {
                     if (!result) {
                         reject(CONSTANT.NOTREGISTERED)
                     }
                     else {
+                        if (commonFunctions.compareHash(data.password, result.password) && result.isAdminVerified) {
+                            resolve(result)
+                        }
+                        else {
+                            console.log(result);
 
-                        resolve(result)
+                            if (!result.isAdminVerified)
+                                reject(CONSTANT.NOTADMINVERIFIED)
+                            else
+                                reject(CONSTANT.WRONGCREDENTIALS)
+                        }
                     }
-
                 })
             }
 
@@ -198,19 +306,27 @@ class owner {
 
     forgotPassword(data) {
         return new Promise((resolve, reject) => {
+            console.log(data);
+
             if (!data.email)
                 reject('Kindly Provide Email')
-            serviceModel.findOne({ email: data.email }).then(result => {
+            ownerModel.findOne({ email: data.email }).then(result => {
                 if (!result) {
                     reject(CONSTANT.NOTREGISTERED)
                 }
                 else {
-                    const token = Math.floor(Math.random() * 10000)
-                    serviceModel.findOneAndUpdate({ email: data.email }, { $set: { token: token } }).then(updateToken => {
+                    const token = rn({
+                        min: 1001,
+                        max: 9999,
+                        integer: true
                     })
-                    commonController.sendMail(data.email, result._id, token, (result) => {
+                    ownerModel.findOneAndUpdate({ email: data.email }, { $set: { token: token } }).then(updateToken => {
+                        resolve(CONSTANT.VERIFYMAIL)
+                    })
+                    commonController.sendMail(data.email, result._id, token, 'owner', (result) => {
+
                         if (result.status === 1)
-                            resolve(CONSTANT.VERIFYMAIL)
+                            console.log(result.message.response);
 
                         else
                             reject(result.message)
@@ -227,12 +343,12 @@ class owner {
 
             if (body.confirmpassword != body.password)
                 return reject("Password and confirm password not matched.")
-            serviceModel.findById(query.user).then(
+            ownerModel.findById(query.user).then(
                 result => {
 
                     if (result && result.token == query.token) {
 
-                        serviceModel
+                        userModel
                             .findByIdAndUpdate(query.user, {
                                 password: commonFunctions.hashPassword(body.password),
                                 token: ""
@@ -244,12 +360,7 @@ class owner {
                                 err => {
                                     return reject(err)
                                 }
-                            ).catch(error => {
-                                if (error.errors)
-                                    return reject(commonController.handleValidation(error))
-
-                                return reject(error)
-                            })
+                            )
                     }
                     else {
                         return reject({ expired: 1 })
@@ -261,7 +372,6 @@ class owner {
             )
         })
     }
-
     addPhotos(data, files) {
         return new Promise((resolve, reject) => {
             var photos = []

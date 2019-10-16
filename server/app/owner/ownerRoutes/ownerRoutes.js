@@ -36,7 +36,7 @@ ownerRoute.route('/signup')
             return res.json({
                 success: CONSTANT.TRUE,
                 data: result,
-                message: CONSTANT.SIGNUPSUCCESS,
+                message: result.message,
 
             })
         }).catch(error => {
@@ -45,11 +45,127 @@ ownerRoute.route('/signup')
         })
     })
 
+//VERFIFY
+ownerRoute.route('/verify')
+    .get((req, res) => {
+        ownerController.verify(req.query).then(result => {
 
+            return res.send(`<h1 style="text-align:center; font-size:100px" >Verified successfully</h1>`)
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+
+    })
+
+
+// Resend
+ownerRoute.route('/resendVerification')
+    .put((req, res) => {
+        ownerController.resendVerification(req.body).then(result => {
+            return res.send({
+                success: CONSTANT.TRUE,
+                data: result,
+                message: CONSTANT.VERIFYMAIL
+            })
+        }).catch(err => {
+            console.log(err);
+
+            return res.json({ message: err, success: CONSTANT.FALSE })
+
+        })
+    })
+
+
+ownerRoute.route('/forgetpassword').
+    get((req, res) => {
+        if (!(req.query.user || req.query.token)) {
+            res.redirect('/server/app/views/404-page')
+        }
+        let message = req.flash('errm');
+        console.log("messagev", message);
+
+        res.render('forgetPassword', { title: 'Forget password', message })
+    })
+
+
+
+//Forgot Password
+
+ownerRoute.route('/forget-password')
+    .post((req, res) => {
+
+        ownerController.forgotPassword(req.body).then(result => {
+            return res.json({
+                status: CONSTANT.TRUE,
+                message: CONSTANT.CHANGEPASSWORDLINK
+
+            })
+        }).catch(error => {
+            console.log("error", error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS })
+        })
+    })
+
+
+// Verify Passowrd
+
+ownerRoute.route('/forgetpassword').
+    post((req, res) => {
+        ownerController.forgetPasswordVerify(req.body, req.query).then(
+            message => {
+                res.render('forgetPassword', { message: message, title: 'Forget password' })
+            },
+            err => {
+                if (err.expired) {
+                    return res.send(`<h1 style="text-align:center; font-size:100px" >Forget password link has been expired.</h1>`)
+                }
+                req.flash('errm', err)
+
+                let url = `/api/user/forgetpassword?token=${req.query.token}&user=${req.query.user}`
+                res.redirect(url)
+            }
+        )
+    })
+
+//Add Vehicle
+
+ownerRoute.route('/addVehicle')
+    .post(upload.fields([{ name: 'vehiclePics', maxCount: 4 }, { name: 'verificationPhotos', maxCount: 6 }]), (req, res) => {
+        ownerController.addVehicle(req.body, req.files).then(result => {
+            return res.json({
+                success: CONSTANT.TRUE,
+                data: result,
+                message: CONSTANT.VEHCILEADDSUCEESS,
+
+            })
+        }).catch(error => {
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+    })
+
+//Add Vehicle
+
+ownerRoute.route('/displayVehicles/:ownerId')
+    .get((req, res) => {
+        ownerController.displayVehicles(req.params.ownerId).then(result => {
+            return res.json({
+                success: CONSTANT.TRUE,
+                data: result
+            })
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+    })
 //Complete Owner
 
 ownerRoute.route('/completeProfile')
-    .patch(upload.fields([{ name: 'profilePhoto', maxCount: 6 }]), (req, res) => {
+    .patch(upload.fields([{ name: 'verificationPhotos', maxCount: 6 }]), (req, res) => {
 
         ownerController.completeProfile(req.body, req.files).then(result => {
             return res.json({
