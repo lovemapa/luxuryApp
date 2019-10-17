@@ -142,6 +142,7 @@ ownerRoute.route('/addVehicle')
 
             })
         }).catch(error => {
+            console.log(error);
 
             return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
         })
@@ -165,13 +166,13 @@ ownerRoute.route('/displayVehicles/:ownerId')
 //Complete Owner
 
 ownerRoute.route('/completeProfile')
-    .patch(upload.fields([{ name: 'verificationPhotos', maxCount: 6 }]), (req, res) => {
+    .put(upload.fields([{ name: 'verificationPhotos', maxCount: 6 }]), (req, res) => {
 
         ownerController.completeProfile(req.body, req.files).then(result => {
             return res.json({
                 success: CONSTANT.TRUE,
                 data: result,
-                message: CONSTANT.SIGNUPSUCCESS,
+                message: CONSTANT.UPDATEMSG,
             })
         }).catch(error => {
             console.log("error", error);

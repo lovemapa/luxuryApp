@@ -62,6 +62,23 @@ adminRoute.route('/registerUser')
         })
 
     })
+
+//Display Owners Profile
+adminRoute.route('/displayOwner/:ownerId')
+    .post((req, res) => {
+        adminController.displayOwner(req.params.ownerId).then(result => {
+            return res.json({
+                success: CONSTANT.TRUE,
+                data: result,
+
+            })
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+
+    })
 //edit User    
 adminRoute.route('/editUser')
     .patch(upload, (req, res) => {

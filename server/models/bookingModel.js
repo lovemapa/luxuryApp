@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 
 var bookingModelSchema = new Schema({
     bookingDuration: { type: Number, required: true },
-    currentCoordinates: [{ type: String }],
+    currentCoordinates: [{ type: Number }],
     carType: { type: String },
     currentLat: { type: Number },
     currentLong: { type: Number },

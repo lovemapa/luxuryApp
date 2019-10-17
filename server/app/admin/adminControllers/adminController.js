@@ -127,7 +127,17 @@ class admin {
         })
     }
 
-
+    displayOwner(ownerId) {
+        return new Promise((resolve, reject) => {
+            ownerModel.findOne({ _id: ownerId }).populate("ownerVerifyImages").then(result => {
+                resolve(result)
+            }).catch(error => {
+                if (error.errors)
+                    return reject(commonController.handleValidation(error))
+                return reject(error)
+            })
+        })
+    }
     editUser(data, file) {
         return new Promise((resolve, reject) => {
 

@@ -24,11 +24,15 @@ var ownerModelSchema = new Schema({
     carType: { type: String },
     currentCoordinates: [{ type: Number }],
     currentLat: { type: Number },
-    currentLong: { type: Number },
-    verificationPhotos: [{ type: String }]
+    currentLong: { type: Number }
+})
 
-
-
+ownerModelSchema.set('toObject', { virtuals: true });
+ownerModelSchema.set('toJSON', { virtuals: true });
+ownerModelSchema.virtual('ownerVerifyImages', {
+    ref: 'ownerImage',
+    localField: '_id',
+    foreignField: 'ownerId'
 })
 
 module.exports = mongoose.model('owner', ownerModelSchema);

@@ -7,6 +7,7 @@ const commonController = require('../../common/controllers/commonController')
 const moment = require('moment')
 const rn = require('random-number')
 const userIssue = require('../../../models/usersIssueModel')
+const vehicleModel = require('../../../models/vehicleModel')
 var CronJob = require('cron').CronJob;
 
 
@@ -144,6 +145,78 @@ class carRent {
 
         })
     }
+
+    displayVehicle(_id) {
+        return new Promise((resolve, reject) => {
+
+            if (!_id)
+                reject(CONSTANT.VEHCILEIDMISSING)
+            vehicleModel.findOne({ _id: _id }).select(' aboutCar hourlyRate color condition engine vehicleType vehicleModel hourlyRate').populate("vehicleImages").then(result => {
+                resolve(result)
+            }).catch(err => {
+                if (err.errors)
+                    return reject(commonController.handleValidation(error))
+            })
+
+
+        })
+    }
+    displayHome(cordinates) {
+        return new Promise((resolve, reject) => {
+            vehicleModel.aggregate([
+
+                {
+                    $geoNear: {
+                        near: {
+                            type: "Point", coordinates: cordinates
+                        },
+                        includeLocs: "dist.location",
+                        maxDistance: 10000,
+                        distanceField: "dist.calculated",
+
+                        spherical: true
+                    }
+                },
+                {
+                    $lookup:
+                    {
+                        from: "vehicleimages",
+                        localField: "_id",
+                        foreignField: "vehcileId",
+                        as: "images"
+                    }
+                }
+                ,
+                {
+                    $group: {
+                        _id: "$vehicleType",
+                        count: { $sum: 1 },
+                        details: { $push: '$$ROOT' }
+                    }
+                },
+
+                {
+                    $project: {
+                        "details._id": 1,
+                        "details.images": 1,
+                        "details.vehicleType": 1,
+                        "details.vehicleModel": 1,
+                        "details.hourlyRate": 1,
+                        count: 1
+                    }
+                }
+            ]).then(result => {
+                resolve(result)
+            }).catch(error => {
+                if (error.errors)
+                    return reject(commonController.handleValidation(error))
+
+                return reject(error)
+            })
+        })
+    }
+
+
 
     verify(query) {
         return new Promise((resolve, reject) => {

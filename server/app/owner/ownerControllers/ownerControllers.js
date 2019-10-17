@@ -1,18 +1,20 @@
 'use strict'
 const ownerModel = require('../../../models/ownerModel')
-const vehicleModel = require('../../../models/vehicleModel')
 const CONSTANT = require('../../../constant')
 const commonFunctions = require('../../common/controllers/commonFunctions')
 const commonController = require('../../common/controllers/commonController')
+const vehicleSchema = require('../../../models/vehicleImageModel')
+const ownerVerfiySchema = require('../../../models/ownerImagesModel')
 const rn = require('random-number')
 const userModel = require('../../../models/userModel')
-// const serviceIssue = require('../../../models/serviceIssueModel')
-
+const vehicleModel = require('../../../models/vehicleModel')
+const geolib = require('geolib');
 const moment = require('moment')
 
 class owner {
 
     //Owner Signup
+
     signUp(data, files) {
         return new Promise((resolve, reject) => {
 
@@ -136,19 +138,19 @@ class owner {
     //Add Vehicle
     addVehicle(data, files) {
         return new Promise((resolve, reject) => {
-            console.log(data);
 
-            var vehiclePics = []
-            files.vehiclePics.map(result => {
-                vehiclePics.push('/' + result.filename);
-
-            });
-            if (files)
-                data.vehiclePics = vehiclePics
-
+            var currentCoordinates = []
+            var location = {}
+            if (data.currentLat && data.currentLong) {
+                currentCoordinates.push(Number(data.currentLong))
+                currentCoordinates.push(Number(data.currentLat))
+                location.type = "Point";
+                location.coordinates = currentCoordinates
+            }
 
             const vehicle = new vehicleModel({
                 ownerId: data.ownerId,
+                aboutCar: data.aboutCar,
                 vehicleType: data.vehicleType,
                 vehicleModel: data.vehicleModel,
                 color: data.color,
@@ -159,11 +161,24 @@ class owner {
                 carName: data.carName,
                 hourlyRate: data.hourlyRate,
                 dayRate: data.dayRate,
-                vehiclePics: data.vehiclePics,
+                currentLat: Number(data.currentLat),
+                currentLong: Number(data.currentLong),
+                location: location,
                 date: moment().valueOf()
 
             })
             vehicle.save().then(vehicle => {
+                if (files)
+                    files.vehiclePics.map(result => {
+                        const vehiclePics = new vehicleSchema({
+                            path: '/' + result.filename,
+                            vehcileId: vehicle._id,
+                            date: moment().valueOf()
+                        })
+                        vehiclePics.save().then(image => {
+
+                        })
+                    })
                 resolve(vehicle)
 
             }).catch(err => {
@@ -180,7 +195,7 @@ class owner {
 
             if (!_id)
                 reject(CONSTANT.OWNERIDMISSING)
-            vehicleModel.find({ ownerId: _id }).select('vehiclePics vehicleType hourlyRate').then(result => {
+            vehicleModel.find({ ownerId: _id }).select(' vehicleType hourlyRate').populate("vehicleImages").then(result => {
                 console.log(_id);
 
                 if (!result) {
@@ -206,20 +221,24 @@ class owner {
                 reject(CONSTANT.MISSINGPARAMS)
             }
             else {
-                var verificationPhotos = []
-                file.verificationPhotos.map(result => {
-                    verificationPhotos.push('/' + result.filename)
+                if (file) {
+                    file.verificationPhotos.map(result => {
+                        const imagesPics = new ownerVerfiySchema({
+                            path: '/' + result.filename,
+                            ownerId: data.ownerId,
+                            date: moment().valueOf()
+                        })
+                        imagesPics.save().then(image => {
+                            resolve(image)
+                        }).catch(error => {
+                            if (error.errors)
+                                return reject(commonController.handleValidation(error))
 
-                });
+                            return reject(error)
+                        })
+                    })
+                }
 
-                ownerModel.findByIdAndUpdate({ _id: data.ownerId }, { $set: { verificationPhotos: verificationPhotos } }, { new: true }).then(update => {
-                    resolve(update)
-                }).catch(error => {
-                    if (error.errors)
-                        return reject(commonController.handleValidation(error))
-
-                    return reject(error)
-                })
             }
         })
     }

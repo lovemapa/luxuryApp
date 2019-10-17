@@ -21,6 +21,7 @@ let constant = {
     REMOVEFAV: 'Removed from favourites',
     NOTREGISTERED: 'This email not registered with any account',
     OWNERIDMISSING: "Owner Id missing",
+    VEHCILEIDMISSING: "Vehicle Id missing",
     NOTVERIFIED: 'Not Verified yet',
     NOTADMINVERIFIED: 'Yet to be verified by admin',
     WRONGCODEUSED: 'Verification code is not correct.',

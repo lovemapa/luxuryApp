@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
     cb(
       null,
       "img_" +
-     +
+      +
       "_" +
       Date.now() +
       ".jpeg"
@@ -140,6 +140,38 @@ userRoute.route('/forgetpassword').
 
 
 
+//Dislpay Home screen
+userRoute.route('/displayHome').
+  post((req, res) => {
+    userController.displayHome(req.body.coordinates).then(result => {
+      return res.json({
+
+        success: CONSTANT.TRUE,
+        data: result
+      })
+    }).catch(error => {
+      console.log("error", error);
+
+      return res.json({ message: error, status: CONSTANT.FALSESTATUS })
+    })
+  })
+
+
+//Display whole vehicle profile to user
+
+userRoute.route('/displayVehicle/:vehicleId')
+  .get((req, res) => {
+    userController.displayVehicle(req.params.vehicleId).then(result => {
+      return res.json({
+        success: CONSTANT.TRUE,
+        data: result
+      })
+    }).catch(error => {
+      console.log(error);
+
+      return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+    })
+  })
 
 //Forgot Password
 
