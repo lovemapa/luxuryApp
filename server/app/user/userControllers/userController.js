@@ -202,7 +202,8 @@ class carRent {
                         "details.vehicleType": 1,
                         "details.vehicleModel": 1,
                         "details.hourlyRate": 1,
-                        count: 1
+                        count: 1,
+                        "details.dist.calculated": 1,
                     }
                 }
             ]).then(result => {

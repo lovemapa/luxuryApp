@@ -12,9 +12,11 @@ module.exports = (io) => {
             delete socketInfo[socket.username];
         });
 
-        soc.trackService(socket, io, socketInfo, room_members) // Track Service
 
-
+        soc.sendLiveLocation(socket, io, socketInfo)  // Drivers nearby Send Their Live location
+        soc.addUsername(socket, io, socketInfo) //Add username to corresponding socketID
+        soc.sendRequest(socket, io, socketInfo) // Send Request to Owner
+        soc.acceptRequest(socket, io, socketInfo) // Response From Owner
     })
 
 }

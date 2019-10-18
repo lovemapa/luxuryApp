@@ -77,8 +77,8 @@ adminRoute.route('/displayOwner/:ownerId')
 
             return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
         })
-
     })
+    
 //edit User    
 adminRoute.route('/editUser')
     .patch(upload, (req, res) => {
