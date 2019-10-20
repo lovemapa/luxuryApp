@@ -10,6 +10,8 @@ module.exports = (io) => {
 
         socket.on('disconnect', function () {       //Disconnecting the socket
             delete socketInfo[socket.username];
+            console.log(socketInfo);
+
         });
 
 
