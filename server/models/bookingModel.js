@@ -5,6 +5,10 @@ const Schema = mongoose.Schema;
 
 var bookingModelSchema = new Schema({
     bookingDuration: { type: Number, required: true },
+    vehicleId: { type: Schema.ObjectId, ref: 'vehicle' },
+    typeOfEvent: { type: String },
+    startTime: { type: Number },
+    endTime: { type: Number },
     currentCoordinates: [{ type: Number }],
     carType: { type: String },
     currentLat: { type: Number },
@@ -16,7 +20,7 @@ var bookingModelSchema = new Schema({
     pickUpCordinates: [{ type: String }],
     name: { type: String },
     contact: { type: String, required: true },
-    userId: { type: Schema.ObjectId, ref: 'user', required: true },
+    userId: { type: Schema.ObjectId, ref: 'user' },
     status: { type: String, enum: ['pending', 'confirmed', 'closed'], default: 'pending' },
     timeForPickup: { type: Number },
     condition: { type: String },

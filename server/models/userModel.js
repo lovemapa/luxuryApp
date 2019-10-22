@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 
 var userModelSchema = new Schema({
-    contact: { type: String, unique: true },
+    contact: { type: String },
     email: { type: String, unique: true },
     firstName: { type: String },
     lastName: { type: String },
@@ -13,6 +13,7 @@ var userModelSchema = new Schema({
     username: { type: String },
     street: { type: String },
     cun: { type: String },
+    countryCode: { type: String },
     referralCode: { type: String },
     date: { type: Number },
     profilePic: { type: String, default: '/default.png' },
@@ -22,7 +23,7 @@ var userModelSchema = new Schema({
     token: Number
 })
 
-
+userModelSchema.index({ contact: 1, countryCode: 1 }, { unique: true })
 
 module.exports = mongoose.model('user', userModelSchema);
 

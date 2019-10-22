@@ -14,7 +14,7 @@ var CronJob = require('cron').CronJob;
 
 class carRent {
     signUp(data, file) {
-        console.log(data);
+        console.log(file);
 
         return new Promise((resolve, reject) => {
 
@@ -75,6 +75,8 @@ class carRent {
         })
         return user
     }
+
+
 
     // Complete owner Profile
     completeProfile(data, file) {
@@ -258,21 +260,18 @@ class carRent {
 
     verifyEmail(data) {
         return new Promise((resolve, reject) => {
-            if (!data.userId || !data.token)
+            if (!data.userId)
                 reject(CONSTANT.MISSINGPARAMS)
 
             else {
 
 
                 userModel.findOne({ _id: data.userId }).then(result => {
-                    if (result) {
-                        if (result.token == data.token)
-                            resolve(result)
-                        else
-                            reject(CONSTANT.VERFIEDFALSE)
+                    if (result.isVerified) {
+                        resolve(result)
                     }
                     else
-                        reject(CONSTANT.NOTREGISTERED)
+                        reject(result)
                 })
                     .catch(error => {
                         if (error.errors)
@@ -624,16 +623,22 @@ class carRent {
                 reject(CONSTANT.NOTSAMEPASSWORDS)
             else {
                 userModel.findOne({ _id: data._id }).then(oldPass => {
+                    if (oldPass) {
 
-                    if (commonFunctions.compareHash(data.oldPassword, oldPass.password)) {
-                        userModel.findByIdAndUpdate({ _id: data._id }, { $set: { password: commonFunctions.hashPassword(data.newPassword) } }, { new: true }).then(update => {
-                            resolve(update)
-                        })
+                        if (commonFunctions.compareHash(data.oldPassword, oldPass.password)) {
+                            userModel.findByIdAndUpdate({ _id: data._id }, { $set: { password: commonFunctions.hashPassword(data.newPassword) } }, { new: true }).then(update => {
+                                resolve(update)
+                            })
+                        }
+                        else {
+                            reject(CONSTANT.WRONGOLDPASS)
+                        }
+                        resolve(oldPass)
                     }
                     else {
-                        reject(CONSTANT.WRONGOLDPASS)
+                        reject(CONSTANT.NOTEXISTS)
                     }
-                    resolve(oldPass)
+
                 })
                     .catch(error => {
                         if (error.errors)
@@ -643,6 +648,22 @@ class carRent {
                     })
             }
         })
+    }
+
+    checkContactExists(data) {
+        return new Promise((resolve, reject) => {
+            if (!data.contact || !data.countryCode)
+                reject(CONSTANT.MISSINGCONTACT)
+            else {
+                ownerModel.findOne({ countryCode: data.countryCode, contact: data.contact }).then(result => {
+                    if (!result)
+                        resolve(result)
+                    else
+                        reject(CONSTANT.NOCONTACTS)
+                })
+            }
+        })
+
     }
 
 

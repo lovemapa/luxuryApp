@@ -78,7 +78,7 @@ adminRoute.route('/displayOwner/:ownerId')
             return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
         })
     })
-    
+
 //edit User    
 adminRoute.route('/editUser')
     .patch(upload, (req, res) => {
@@ -237,8 +237,8 @@ adminRoute.route('/displayBookings')
 
 //Display Users
 adminRoute.route('/displayUsers')
-    .get((req, res) => {
-        adminController.displayUsers().then(result => {
+    .post((req, res) => {
+        adminController.displayUsers(req.body).then(result => {
             return res.json({
                 success: CONSTANT.TRUE,
                 data: result,
@@ -253,9 +253,9 @@ adminRoute.route('/displayUsers')
     })
 
 //Display Services
-adminRoute.route('/displayServices')
-    .get((req, res) => {
-        adminController.displayServices().then(result => {
+adminRoute.route('/displayOwners')
+    .post((req, res) => {
+        adminController.displayOwners(req.body).then(result => {
             return res.json({
                 success: CONSTANT.TRUE,
                 data: result,

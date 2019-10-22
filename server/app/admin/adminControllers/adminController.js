@@ -391,25 +391,37 @@ class admin {
             })
         })
     }
-    displayUsers() {
+    displayUsers(data) {
         return new Promise((resolve, reject) => {
-            userModel.find({}).select('_id email countryCode profilePic gender nickName callType area state').populate({ path: 'allRatings' }).then(result => {
-                resolve(result)
-            }).catch(error => {
-                if (error.errors)
-                    return reject(commonController.handleValidation(error))
-                return reject(error)
+            userModel.find({ isDeleted: false }).countDocuments().then(count => {
+                userModel.find({ isDeleted: false }).skip(Number(data.page - 1) * Number(10)).limit(Number(10)).then(result => {
+
+                    resolve({ result: result, count: count })
+                }).catch(error => {
+                    if (error.errors)
+                        return reject(commonController.handleValidation(error))
+                    return reject(error)
+                })
+
+                return count
             })
         })
     }
-    displayServices() {
+    displayOwners(data) {
+
         return new Promise((resolve, reject) => {
-            serviceModel.find({}).select('_id email contact status gender firstName lastName profilePic').populate({ path: 'avgratings' }).then(result => {
-                resolve(result)
-            }).catch(error => {
-                if (error.errors)
-                    return reject(commonController.handleValidation(error))
-                return reject(error)
+
+            ownerModel.find({ isDeleted: false }).countDocuments().then(count => {
+                ownerModel.find({ isDeleted: false }).populate('ownerVerifyImages').skip(Number(data.page - 1) * Number(10)).limit(Number(10)).then(result => {
+
+                    resolve({ result: result, count: count })
+                }).catch(error => {
+                    console.log(error);
+
+                    if (error.errors)
+                        return reject(commonController.handleValidation(error))
+                    return reject(error)
+                })
             })
         })
     }

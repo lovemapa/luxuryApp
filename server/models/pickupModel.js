@@ -3,18 +3,18 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 
-var ratingModelSchema = new Schema({
+var pickDetailsModelSchema = new Schema({
     bookingId: { type: Schema.Types.ObjectId, ref: 'booking' },
-    schedule: { type: Number },
     date: { type: Number },
-    duration: { type: Number },
-    condition: { type: String },
+    name: { type: String },
+    contact: { type: String },
+    notes: { type: String },
     specialRequest: { type: String },
-    userId: { type: Schema.Types.ObjectId, ref: 'user' },
+    // userId: { type: Schema.Types.ObjectId, ref: 'user' },
 
 })
 
 
 
-module.exports = mongoose.model('rating', ratingModelSchema);
+module.exports = mongoose.model('pickDetails', pickDetailsModelSchema);
 

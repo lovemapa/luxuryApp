@@ -17,9 +17,10 @@ class owner {
 
     signUp(data, files) {
         return new Promise((resolve, reject) => {
+            console.log('DATA=', files);
 
-            if (!data.email || !data.password) {
-                reject(CONSTANT.MISSINGPARAMS)
+            if (!data.email || !data.password || !files) {
+                reject(CONSTANT.MISSINGPARAMSORFILES)
             }
             else {
                 const token = rn({
@@ -27,16 +28,14 @@ class owner {
                     max: 9999,
                     integer: true
                 })
-                files.profilePic.map(result => {
-                    data.profilePic = '/' + result.filename
+                if (files) {
 
-                });
-                var verificationPhotos = []
-                files.verificationPhotos.map(result => {
-                    verificationPhotos.push('/' + result.filename);
+                    files.profilePic.map(result => {
+                        data.profilePic = '/' + result.filename
 
-                });
-                data.verificationPhotos = verificationPhotos
+                    });
+                }
+
                 data.token = token
 
 
@@ -46,9 +45,11 @@ class owner {
                     firstName: data.firstName,
                     lastName: data.lastName,
                     profilePic: data.profilePic,
-                    verificationPhotos: data.verificationPhotos,
+
                     password: commonFunctions.hashPassword(data.password),
                     token: token,
+                    countryCode: data.countryCode,
+                    contact: data.contact,
                     date: moment().valueOf()
                 })
                 owner.save().then((saveresult) => {
@@ -60,7 +61,6 @@ class owner {
                             reject(result.message)
                     })
                 }).catch(error => {
-                    console.log(error);
 
                     if (error.errors)
                         return reject(commonController.handleValidation(error))
@@ -102,6 +102,33 @@ class owner {
                     }
                 })
 
+            }
+
+        })
+    }
+
+
+    verifyEmail(data) {
+        return new Promise((resolve, reject) => {
+            if (!data.ownerId)
+                reject(CONSTANT.MISSINGPARAMS)
+
+            else {
+
+
+                ownerModel.findOne({ _id: data.ownerId }).then(result => {
+                    if (result.isVerified) {
+                        resolve(result)
+                    }
+                    else
+                        reject(result)
+                })
+                    .catch(error => {
+                        if (error.errors)
+                            return reject(commonController.handleValidation(error))
+                        if (error)
+                            return reject(error)
+                    })
             }
 
         })
@@ -304,14 +331,16 @@ class owner {
                         reject(CONSTANT.NOTREGISTERED)
                     }
                     else {
-                        if (commonFunctions.compareHash(data.password, result.password) && result.isAdminVerified) {
+                        if (commonFunctions.compareHash(data.password, result.password) && result.isAdminVerified && result.isVerified) {
                             resolve(result)
                         }
                         else {
-                            console.log(result);
+
 
                             if (!result.isAdminVerified)
                                 reject(CONSTANT.NOTADMINVERIFIED)
+                            else if (!result.isVerified)
+                                reject(CONSTANT.NOTVERIFIED)
                             else
                                 reject(CONSTANT.WRONGCREDENTIALS)
                         }
@@ -511,17 +540,16 @@ class owner {
 
     changePassword(data) {
         return new Promise((resolve, reject) => {
-            console.log(data);
 
             if (!data.oldPassword || !data.newPassword || !data.confirmPassword || !data._id)
                 reject(CONSTANT.MISSINGPARAMS)
             if (data.confirmPassword != data.confirmPassword)
                 reject(CONSTANT.NOTSAMEPASSWORDS)
             else {
-                serviceModel.findOne({ _id: data._id }).then(oldPass => {
+                ownerModel.findOne({ _id: data._id }).then(oldPass => {
 
                     if (commonFunctions.compareHash(data.oldPassword, oldPass.password)) {
-                        serviceModel.findByIdAndUpdate({ _id: data._id }, { $set: { password: commonFunctions.hashPassword(data.newPassword) } }, { new: true }).then(update => {
+                        ownerModel.findByIdAndUpdate({ _id: data._id }, { $set: { password: commonFunctions.hashPassword(data.newPassword) } }, { new: true }).then(update => {
                             resolve(update)
                         })
                     }
@@ -570,6 +598,7 @@ class owner {
                 if (data.eyesColor)
                     query.eyesColor = data.eyesColor
 
+
                 serviceModel.findByIdAndUpdate({ _id: data.serviceId }, { $set: query }, { new: true }).then(update => {
                     resolve(update)
 
@@ -605,6 +634,25 @@ class owner {
             }
         })
     }
+
+
+    checkContactExists(data) {
+        return new Promise((resolve, reject) => {
+            if (!data.contact || !data.countryCode)
+                reject(CONSTANT.MISSINGCONTACT)
+            else {
+                ownerModel.findOne({ countryCode: data.countryCode, contact: data.contact }).then(result => {
+                    if (!result)
+                        resolve({ status: CONSTANT.TRUE, message: 'Phone Number not associated with any account' })
+                    else {
+                        reject({ status: CONSTANT.TRUE, message: 'User Exists', data: result })
+                    }
+                })
+            }
+        })
+
+    }
+
 
     provideUserRatings(data) {
         return new Promise((resolve, reject) => {

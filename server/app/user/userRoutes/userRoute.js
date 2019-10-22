@@ -12,9 +12,8 @@ const storage = multer.diskStorage({
 
     cb(
       null,
-      "img_" +
+      "img_"
       +
-      "_" +
       Date.now() +
       ".jpeg"
     );
@@ -30,19 +29,33 @@ userRoute.route('/register')
   .post(upload.fields([{ name: 'profilePic', maxCount: 1 }]), (req, res) => {
     userController.signUp(req.body, req.files).then(result => {
       return res.json({
-        success: CONSTANT.TRUESTATUS,
+        success: CONSTANT.TRUE, message: CONSTANT.TRUEMSG, user: result
+      })
+    }).catch(error => {
+      console.log(error);
+
+      return res.json({ message: error, success: CONSTANT.FALSE })
+    })
+
+  })
+
+//Check If Number Exists
+userRoute.route('/checkContactExists')
+  .post((req, res) => {
+    userController.checkContactExists(req.body).then(result => {
+      return res.json({
+        success: CONSTANT.TRUE,
         data: result,
-        message: result.message,
+        message: result,
 
       })
     }).catch(error => {
       console.log(error);
 
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
 
   })
-
 
 //Complete user
 
@@ -58,7 +71,7 @@ userRoute.route('/completeProfile')
     }).catch(error => {
       console.log("error", error);
 
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
   })
 
@@ -70,14 +83,12 @@ userRoute.route('/login')
 
     userController.login(req.body).then(result => {
       return res.json({
-        success: CONSTANT.TRUE,
-        data: result
-
+        success: CONSTANT.TRUE, message: CONSTANT.TRUEMSG, user: result
       })
     }).catch(error => {
       console.log("error", error);
 
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
   })
 
@@ -90,7 +101,7 @@ userRoute.route('/verify')
     }).catch(error => {
       console.log(error);
 
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
 
   })
@@ -106,7 +117,7 @@ userRoute.route('/verifyEmail')
         message: CONSTANT.VERFIEDTRUE
       })
     }).catch(err => {
-      return res.json({ message: err, success: CONSTANT.FALSE })
+      return res.json({ data: err, message: CONSTANT.NOTVERIFIED, success: CONSTANT.FALSE })
 
     })
   })
@@ -115,9 +126,7 @@ userRoute.route('/resendVerification')
   .put((req, res) => {
     userController.resendVerification(req.body).then(result => {
       return res.send({
-        success: CONSTANT.TRUE,
-        data: result,
-        message: CONSTANT.VERIFYMAIL
+        success: CONSTANT.TRUE, message: CONSTANT.TRUEMSG
       })
     }).catch(err => {
       console.log(err);
@@ -152,7 +161,7 @@ userRoute.route('/displayHome').
     }).catch(error => {
       console.log("error", error);
 
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
   })
 
@@ -169,7 +178,7 @@ userRoute.route('/displayVehicle/:vehicleId')
     }).catch(error => {
       console.log(error);
 
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
   })
 
@@ -180,14 +189,14 @@ userRoute.route('/forget-password')
 
     userController.forgotPassword(req.body).then(result => {
       return res.json({
-        status: CONSTANT.TRUE,
+        success: CONSTANT.TRUE,
         message: CONSTANT.CHANGEPASSWORDLINK
 
       })
     }).catch(error => {
       console.log("error", error);
 
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
   })
 
@@ -344,22 +353,6 @@ userRoute.route('/provideServiceRatings')
     })
   })
 
-userRoute.route('/changePassword').
-  patch((req, res) => {
-    userController.changePassword(req.body).then(result => {
-      return res.json({
-
-        success: CONSTANT.TRUE,
-        message: CONSTANT.UPDATEMSG,
-        data: result
-      })
-    }).catch(error => {
-      console.log("error", error);
-
-      return res.json({ message: error, status: CONSTANT.FALSESTATUS })
-    })
-  })
-
 //Add issue by service
 userRoute.route('/addIssue')
   .post(upload.fields([{ name: 'issueimage', maxCount: 1 }]), (req, res) => {
@@ -389,6 +382,20 @@ userRoute.route('/getNearbyCars')
       return res.json({ message: err, success: CONSTANT.FALSE })
     })
   })
+
+userRoute.route('/changePassword').
+  put((req, res) => {
+    userController.changePassword(req.body).then(result => {
+      return res.json({
+        success: CONSTANT.TRUE, message: CONSTANT.UPDATEMSG, user: result
+      })
+    }).catch(error => {
+      console.log("error", error);
+
+      return res.json({ message: error, success: CONSTANT.FALSE })
+    })
+  })
+
 // userController.cronJob()
 
 module.exports = userRoute;
