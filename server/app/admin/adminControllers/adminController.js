@@ -172,9 +172,11 @@ class admin {
         })
     }
 
-    ownerVerify(_id) {
+    ownerVerify(data) {
         return new Promise((resolve, reject) => {
-            ownerModel.findByIdAndUpdate({ _id: _id }, { $set: { isAdminVerified: true } }, { new: true }).then(del => {
+            if (!data.ownerId)
+                reject(CONSTANT.OWNERIDMISSING)
+            ownerModel.findByIdAndUpdate({ _id: data.ownerId }, { $set: { isAdminVerified: data.status } }, { new: true }).then(del => {
                 resolve(del)
             }).catch(error => {
                 if (error.errors)

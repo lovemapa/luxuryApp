@@ -17,8 +17,6 @@ class owner {
 
     signUp(data, files) {
         return new Promise((resolve, reject) => {
-            console.log('DATA=', files);
-
             if (!data.email || !data.password || !files) {
                 reject(CONSTANT.MISSINGPARAMSORFILES)
             }
@@ -396,10 +394,10 @@ class owner {
 
                     if (result && result.token == query.token) {
 
-                        userModel
+                        ownerModel
                             .findByIdAndUpdate(query.user, {
                                 password: commonFunctions.hashPassword(body.password),
-                                token: ""
+
                             })
                             .then(
                                 result1 => {
@@ -568,40 +566,31 @@ class owner {
         })
     }
 
-    updateService(data) {
+    updateOwner(data) {
         return new Promise((resolve, reject) => {
-            console.log(data);
-
-            if (!data.serviceId)
-                reject(CONSTANT.MISSINGPARAMS)
+            if (!data.ownerId)
+                reject(CONSTANT.OWNERIDMISSING)
             else {
                 var query = {}
                 var measurments = []
-                if (data.cupSize && data.waistSize && data.hipSize) {
-                    measurments.push(data.cupSize)
-                    measurments.push(data.waistSize)
-                    measurments.push(data.hipSize)
-                    query.measurments = measurments
-                }
-                if (data.languages)
-                    query.languages = data.languages
-                if (data.age)
-                    query.age = data.age
-                if (data.maritalStatus)
-                    query.maritalStatus = data.maritalStatus
-                if (data.gender)
-                    query.gender = data.gender
-                if (data.height)
-                    query.height = data.height
-                if (data.bodyType)
-                    query.bodyType = data.bodyType
-                if (data.eyesColor)
-                    query.eyesColor = data.eyesColor
+
+                if (data.firstName)
+                    query.firstName = data.firstName
+                if (data.lastName)
+                    query.lastName = data.lastName
+                if (data.countryCode)
+                    query.countryCode = data.countryCode
+                if (data.contact)
+                    query.contact = data.contact
 
 
-                serviceModel.findByIdAndUpdate({ _id: data.serviceId }, { $set: query }, { new: true }).then(update => {
-                    resolve(update)
 
+                ownerModel.findByIdAndUpdate({ _id: data.ownerId }, { $set: query }, { new: true }).then(update => {
+                    if (update)
+                        resolve(update)
+                    else {
+                        reject(CONSTANT.NOTEXISTS)
+                    }
 
                 }).catch(error => {
                     if (error.errors)

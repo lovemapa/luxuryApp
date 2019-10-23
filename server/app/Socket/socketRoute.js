@@ -19,6 +19,7 @@ module.exports = (io) => {
         soc.addUsername(socket, io, socketInfo) //Add username to corresponding socketID
         soc.sendRequest(socket, io, socketInfo) // Send Request to Owner
         soc.acceptRequest(socket, io, socketInfo) // Response From Owner
+        soc.createBooking(socket, io, socketInfo) // Booking request from user
     })
 
 }

@@ -116,9 +116,9 @@ adminRoute.route('/editService')
     })
 
 //Verify Owner
-adminRoute.route('/ownerVerify/:ownerId')
+adminRoute.route('/ownerVerify')
     .put(upload, (req, res) => {
-        adminController.ownerVerify(req.params.ownerId).then(result => {
+        adminController.ownerVerify(req.body).then(result => {
             return res.json({
                 success: CONSTANT.VERFIEDTRUE,
                 data: result,

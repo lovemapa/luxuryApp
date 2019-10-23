@@ -341,9 +341,9 @@ ownerRoute.route('/changePassword').
 
 
 //update Service Details
-ownerRoute.route('/updateService').
-    patch((req, res) => {
-        ownerController.updateService(req.body).then(result => {
+ownerRoute.route('/updateOwner').
+    put((req, res) => {
+        ownerController.updateOwner(req.body).then(result => {
             return res.json({
 
                 success: CONSTANT.TRUE,

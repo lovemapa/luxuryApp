@@ -107,6 +107,25 @@ userRoute.route('/verify')
   })
 
 
+
+//update User Details
+userRoute.route('/updateUser').
+  put(upload.fields([{ name: 'profilePic', maxCount: 1 }]), (req, res) => {
+    userController.updateUser(req.body, req.files).then(result => {
+      return res.json({
+
+        success: CONSTANT.TRUE,
+        message: CONSTANT.UPDATEMSG,
+        data: result
+      })
+    }).catch(error => {
+      console.log("error", error);
+
+      return res.json({ message: error, status: CONSTANT.FALSE })
+    })
+  })
+
+
 //Verify and send activation Mail to user 
 userRoute.route('/verifyEmail')
   .post((req, res) => {

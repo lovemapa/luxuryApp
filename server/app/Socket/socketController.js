@@ -1,4 +1,9 @@
-
+const vehicleModel = require('../../models/vehicleModel')
+const pickModel = require('../../models/pickupModel')
+const bookingModel = require('../../models/bookingModel')
+const userModel = require('../../models/userModel')
+const ownerModel = require('../../models/ownerModel')
+const CONSTANT = require('../../constant')
 
 class socketController {
 
@@ -33,6 +38,45 @@ class socketController {
     acceptRequest(socket, io, room_members) {
         socket.on('acceptRequest', (data) => {
             io.to(room_members[data.userId]).emit('sendRequest', { status: data.status });
+
+        })
+
+    }
+
+
+    createBooking(socket, io, room_members) {
+        socket.on('createBooking', (data) => {
+            if (!data.vehicleId || !data.currentLat || !data.currentLong || !data.userId)
+                io.to(socket.id).emit('createBooking', { status: CONSTANT.MISSINGVEHCILE });
+            else {
+
+                const bookingRegister = this.createBookingRegistration(data)
+                // console.log((data.endTime - data.startTime) / 86400000);
+
+
+                bookingRegister.save().then((saveresult) => {
+                    const pick = new pickModel({
+                        bookingId: saveresult._id,
+                        name: data.name,
+                        contact: data.contact,
+                        notes: data.notes,
+                        specialRequest: data.specialRequest,
+                        date: moment().valueOf()
+                    })
+                    pick.save({}).then(pickDetails => {
+
+                    }).catch(err => {
+                        console.log(err);
+
+                    })
+                    resolve(saveresult)
+                }).catch(error => {
+                    if (error.errors)
+                        return reject(commonController.handleValidation(error))
+
+                    return reject(error)
+                })
+            }
 
         })
 

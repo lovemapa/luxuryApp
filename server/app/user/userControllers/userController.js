@@ -8,6 +8,8 @@ const moment = require('moment')
 const rn = require('random-number')
 const userIssue = require('../../../models/usersIssueModel')
 const vehicleModel = require('../../../models/vehicleModel')
+const pickModel = require('../../../models/pickupModel')
+const bookingModel = require('../../../models/bookingModel')
 var CronJob = require('cron').CronJob;
 
 
@@ -153,7 +155,7 @@ class carRent {
 
             if (!_id)
                 reject(CONSTANT.VEHCILEIDMISSING)
-            vehicleModel.findOne({ _id: _id }).select(' aboutCar hourlyRate color condition engine vehicleType vehicleModel hourlyRate').populate("vehicleImages").then(result => {
+            vehicleModel.findOne({ _id: _id }).select(' aboutCar dayRate hourlyRate color condition engine vehicleType vehicleModel hourlyRate').populate("vehicleImages").then(result => {
                 resolve(result)
             }).catch(err => {
                 if (err.errors)
@@ -204,6 +206,7 @@ class carRent {
                         "details.vehicleType": 1,
                         "details.vehicleModel": 1,
                         "details.hourlyRate": 1,
+                        "details.dayRate": 1,
                         count: 1,
                         "details.dist.calculated": 1,
                     }
@@ -359,7 +362,6 @@ class carRent {
                         userModel
                             .findByIdAndUpdate(query.user, {
                                 password: commonFunctions.hashPassword(body.password),
-                                token: ""
                             })
                             .then(
                                 result1 => {
@@ -412,6 +414,47 @@ class carRent {
 
 
     }
+
+    updateUser(data, file) {
+        return new Promise((resolve, reject) => {
+            if (!data.userId)
+                reject(CONSTANT.USERIDMISSING)
+            else {
+                var query = {}
+                if (file)
+                    file.profilePic.map(result => {
+                        query.profilePic = '/' + result.filename
+
+                    });
+
+                if (data.firstName)
+                    query.firstName = data.firstName
+                if (data.lastName)
+                    query.lastName = data.lastName
+                if (data.countryCode)
+                    query.countryCode = data.countryCode
+                if (data.contact)
+                    query.contact = data.contact
+
+
+
+                userModel.findByIdAndUpdate({ _id: data.userId }, { $set: query }, { new: true }).then(update => {
+                    if (update)
+                        resolve(update)
+                    else {
+                        reject(CONSTANT.NOTEXISTS)
+                    }
+
+                }).catch(error => {
+                    if (error.errors)
+                        return reject(commonController.handleValidation(error))
+                    if (error)
+                        return reject(error)
+                })
+
+            }
+        })
+    }
     servicesList(data) {
         return new Promise((resolve, reject) => {
             console.log(data);
@@ -456,11 +499,28 @@ class carRent {
 
     createBooking(data) {
         return new Promise((resolve, reject) => {
-            if (!data.userId || !data.serviceId)
-                reject(CONSTANT.MISSINGPARAMS)
+            if (!data.vehicleId || !data.currentLat || !data.currentLong || !data.userId)
+                reject(CONSTANT.MISSINGVEHCILE)
             else {
                 const bookingRegister = this.createBookingRegistration(data)
+                // console.log((data.endTime - data.startTime) / 86400000);
+
+
                 bookingRegister.save().then((saveresult) => {
+                    const pick = new pickModel({
+                        bookingId: saveresult._id,
+                        name: data.name,
+                        contact: data.contact,
+                        notes: data.notes,
+                        specialRequest: data.specialRequest,
+                        date: moment().valueOf()
+                    })
+                    pick.save({}).then(pickDetails => {
+
+                    }).catch(err => {
+                        console.log(err);
+
+                    })
                     resolve(saveresult)
                 }).catch(error => {
                     if (error.errors)
@@ -474,18 +534,24 @@ class carRent {
 
     // --------Create Booking Registration Model------------
     createBookingRegistration(data) {
-
+        var currentCoordinates = []
+        if (data.currentLat && data.currentLong) {
+            currentCoordinates.push(data.currentLong)
+            currentCoordinates.push(data.currentLat)
+        }
 
         let BookingRegistrationData = new bookingModel({
 
             // moment().add(1, "hour").add(10, "minute").valueOf()
-            schedule: data.schedule,
-            location: data.location,
-            houseName: data.houseName,
-            houseNumber: data.houseNumber,
-            contact: data.contact,
             userId: data.userId,
-            serviceId: data.serviceId,
+            bookingDuration: data.bookingDuration,
+            vehicleId: data.vehicleId,
+            typeOfEvent: data.typeOfEvent,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            currentCoordinates: currentCoordinates,
+            currentLat: data.currentLat,
+            currentLong: data.currentLong,
             date: moment().valueOf()
         })
         return BookingRegistrationData;
