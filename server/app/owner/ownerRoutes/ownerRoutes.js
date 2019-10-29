@@ -197,6 +197,22 @@ ownerRoute.route('/displayVehicles/:ownerId')
             return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
+
+// Display Particular Vehicle to admin
+
+ownerRoute.route('/displayParticularVehicle/:vehicleId')
+    .get((req, res) => {
+        ownerController.displayParticularVehicle(req.params.vehicleId).then(result => {
+            return res.json({
+                success: CONSTANT.TRUE,
+                data: result
+            })
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, success: CONSTANT.FALSE })
+        })
+    })
 //Complete Owner
 
 ownerRoute.route('/completeProfile')
@@ -245,7 +261,7 @@ ownerRoute.route('/login')
         }).catch(error => {
             console.log("error", error);
 
-            return res.json({ message: error, status: CONSTANT.FALSE })
+            return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
 
@@ -265,7 +281,7 @@ ownerRoute.route('/setStatus')
         }).catch(error => {
             console.log("error", error);
 
-            return res.json({ message: error, status: CONSTANT.FALSE })
+            return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
 //Add Photos
@@ -279,7 +295,7 @@ ownerRoute.route('/addPhotos').
         }).catch(error => {
             console.log("error", error);
 
-            return res.json({ message: error, status: CONSTANT.FALSE })
+            return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
 
@@ -294,7 +310,7 @@ ownerRoute.route('/addVerificationPhotos').
         }).catch(error => {
             console.log("error", error);
 
-            return res.json({ message: error, status: CONSTANT.FALSE })
+            return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
 
@@ -317,7 +333,7 @@ ownerRoute.route('/acceptDenyRequest').
         }).catch(error => {
             console.log("error", error);
 
-            return res.json({ message: error, status: CONSTANT.FALSE })
+            return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
 
@@ -335,25 +351,27 @@ ownerRoute.route('/changePassword').
         }).catch(error => {
             console.log("error", error);
 
-            return res.json({ message: error, status: CONSTANT.FALSE })
+            return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
 
 
 //update Service Details
 ownerRoute.route('/updateOwner').
-    put((req, res) => {
-        ownerController.updateOwner(req.body).then(result => {
+    put(upload.fields([{ name: 'profilePic', maxCount: 1 }]), (req, res) => {
+        console.log(req.body);
+
+        ownerController.updateOwner(req.body, req.files).then(result => {
             return res.json({
 
                 success: CONSTANT.TRUE,
                 message: CONSTANT.UPDATEMSG,
-                data: result
+                user: result
             })
         }).catch(error => {
             console.log("error", error);
 
-            return res.json({ message: error, status: CONSTANT.FALSE })
+            return res.json({ message: error, success: CONSTANT.FALSE })
         })
     })
 

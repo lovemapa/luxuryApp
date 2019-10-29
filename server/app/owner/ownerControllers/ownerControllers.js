@@ -48,6 +48,8 @@ class owner {
                     token: token,
                     countryCode: data.countryCode,
                     contact: data.contact,
+                    deviceType: data.deviceType,
+                    deviceId: data.deviceId,
                     date: moment().valueOf()
                 })
                 owner.save().then((saveresult) => {
@@ -115,11 +117,18 @@ class owner {
 
 
                 ownerModel.findOne({ _id: data.ownerId }).then(result => {
-                    if (result.isVerified) {
-                        resolve(result)
+
+                    if (result) {
+                        if (result.isVerified) {
+                            resolve(result)
+                        }
+                        else
+                            reject(result)
                     }
                     else
-                        reject(result)
+                        reject(CONSTANT.NOTEXISTS)
+
+
                 })
                     .catch(error => {
                         if (error.errors)
@@ -163,6 +172,7 @@ class owner {
     //Add Vehicle
     addVehicle(data, files) {
         return new Promise((resolve, reject) => {
+            console.log(files);
 
             var currentCoordinates = []
             var location = {}
@@ -221,6 +231,32 @@ class owner {
             if (!_id)
                 reject(CONSTANT.OWNERIDMISSING)
             vehicleModel.find({ ownerId: _id }).select(' vehicleType hourlyRate').populate("vehicleImages").then(result => {
+                console.log(_id);
+
+                if (!result) {
+                    reject(CONSTANT.NOTREGISTERED)
+                }
+                else {
+
+                    resolve(result)
+                }
+
+            }).catch(err => {
+                if (err.errors)
+                    return reject(commonController.handleValidation(error))
+            })
+
+
+        })
+    }
+
+    // Display  particular Vehicle to Owner
+    displayParticularVehicle(_id) {
+        return new Promise((resolve, reject) => {
+
+            if (!_id)
+                reject(CONSTANT.OWNERIDMISSING)
+            vehicleModel.findOne({ _id: _id }).populate("vehicleImages").then(result => {
                 console.log(_id);
 
                 if (!result) {
@@ -324,7 +360,7 @@ class owner {
             }
 
             else {
-                ownerModel.findOne({ email: data.email }).then(result => {
+                ownerModel.findOneAndUpdate({ email: data.email }, { $set: { deviceId: data.deviceId } }, { new: true }).then(result => {
                     if (!result) {
                         reject(CONSTANT.NOTREGISTERED)
                     }
@@ -566,13 +602,20 @@ class owner {
         })
     }
 
-    updateOwner(data) {
+    updateOwner(data, file) {
         return new Promise((resolve, reject) => {
+            console.log(data);
+
             if (!data.ownerId)
                 reject(CONSTANT.OWNERIDMISSING)
             else {
                 var query = {}
-                var measurments = []
+                if (file)
+                    file.profilePic.map(result => {
+                        query.profilePic = '/' + result.filename
+
+                    });
+
 
                 if (data.firstName)
                     query.firstName = data.firstName
@@ -610,16 +653,13 @@ class owner {
                 reject(CONSTANT.MISSINGPARAMS)
             else {
                 serviceModel.findByIdAndUpdate({ _id: data._id }, { $set: { status: parseInt(data.status) } }, { new: true }).then(updateStatus => {
-
-                    console.log(updateStatus);
                     resolve(updateStatus)
+                }).catch(error => {
+                    if (error.errors)
+                        return reject(commonController.handleValidation(error))
+                    if (error)
+                        return reject(error)
                 })
-                    .catch(error => {
-                        if (error.errors)
-                            return reject(commonController.handleValidation(error))
-                        if (error)
-                            return reject(error)
-                    })
             }
         })
     }

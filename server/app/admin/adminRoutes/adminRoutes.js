@@ -234,6 +234,37 @@ adminRoute.route('/displayBookings')
         })
 
     })
+//Dislpay Home screen
+adminRoute.route('/displayHome').
+    post((req, res) => {
+        adminController.displayHome(req.body.group).then(result => {
+            return res.json({
+
+                success: CONSTANT.TRUE,
+                data: result
+            })
+        }).catch(error => {
+            console.log("error", error);
+
+            return res.json({ message: error, success: CONSTANT.FALSE })
+        })
+    })
+//Show all vehicles
+adminRoute.route('/displayVehicles')
+    .post((req, res) => {
+        adminController.displayVehicles(req.body).then(result => {
+            return res.json({
+                success: CONSTANT.TRUE,
+                data: result,
+
+            })
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+
+    })
 
 //Display Users
 adminRoute.route('/displayUsers')

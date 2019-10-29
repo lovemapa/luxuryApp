@@ -24,7 +24,9 @@ var ownerModelSchema = new Schema({
     token: Number,
     currentCoordinates: [{ type: Number }],
     currentLat: { type: Number },
-    currentLong: { type: Number }
+    currentLong: { type: Number },
+    deviceType: { type: String },
+    deviceId: { type: String }
 })
 
 ownerModelSchema.index({ contact: 1, countryCode: 1 }, { unique: true })

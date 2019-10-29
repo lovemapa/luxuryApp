@@ -29,7 +29,7 @@ userRoute.route('/register')
   .post(upload.fields([{ name: 'profilePic', maxCount: 1 }]), (req, res) => {
     userController.signUp(req.body, req.files).then(result => {
       return res.json({
-        success: CONSTANT.TRUE, message: CONSTANT.TRUEMSG, user: result
+        success: CONSTANT.TRUE, message: CONSTANT.VERIFYMAIL, user: result.result
       })
     }).catch(error => {
       console.log(error);
@@ -113,15 +113,12 @@ userRoute.route('/updateUser').
   put(upload.fields([{ name: 'profilePic', maxCount: 1 }]), (req, res) => {
     userController.updateUser(req.body, req.files).then(result => {
       return res.json({
-
         success: CONSTANT.TRUE,
         message: CONSTANT.UPDATEMSG,
-        data: result
+        user: result
       })
     }).catch(error => {
-      console.log("error", error);
-
-      return res.json({ message: error, status: CONSTANT.FALSE })
+      return res.json({ message: error, success: CONSTANT.FALSE })
     })
   })
 

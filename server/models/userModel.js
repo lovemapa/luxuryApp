@@ -20,7 +20,9 @@ var userModelSchema = new Schema({
     isDeleted: { type: Number, default: 0 },
     city: { type: String },
     isVerified: { type: Boolean, default: false },
-    token: Number
+    token: Number,
+    deviceType: { type: String },
+    deviceId: { type: String }
 })
 
 userModelSchema.index({ contact: 1, countryCode: 1 }, { unique: true })

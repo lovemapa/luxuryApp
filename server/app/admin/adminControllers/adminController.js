@@ -3,6 +3,7 @@ const adminModel = require('../../../models/adminModel')
 const carCategory = require('../../../models/carCategoryModel')
 const bookingModel = require('../../../models/bookingModel')
 const ownerModel = require('../../../models/ownerModel')
+const vehicleModel = require('../../../models/vehicleModel')
 const userModel = require('../../../models/userModel')
 const CONSTANT = require('../../../constant')
 const commonFunctions = require('../../common/controllers/commonFunctions')
@@ -96,7 +97,6 @@ class admin {
             isVerified: true,
             gender: data.gender,
             genderPreference: data.genderPreference,
-
         })
         return userRegistrationData;
     }
@@ -367,7 +367,96 @@ class admin {
         })
     }
 
+    displayVehicles(data) {
 
+        return new Promise((resolve, reject) => {
+
+            let query = {}
+            if (data.from && data.to)
+                query.date = {
+                    $gte: data.from,
+                    $lte: data.to
+                }
+            if (data.boookingFrom && data.bookingTo)
+                query.schedule = {
+                    $gte: data.boookingFrom,
+                    $lte: data.bookingTo
+                }
+            console.log(query);
+
+            vehicleModel.find(query).populate('ownerId').populate('vehicleImages').then(result => {
+                resolve(result)
+            }).catch(error => {
+                if (error.errors)
+                    return reject(commonController.handleValidation(error))
+                return reject(error)
+            })
+        })
+    }
+
+    displayHome(groupParam) {
+        return new Promise((resolve, reject) => {
+
+            var group
+            if (groupParam)
+                group = "$vehicleType"
+            else
+                group = null
+
+            vehicleModel.aggregate([
+
+                // {
+                //     $geoNear: {
+                //         near: {
+                //             type: "Point", coordinates: cordinates
+                //         },
+                //         includeLocs: "dist.location",
+                //         maxDistance: 10000,
+                //         distanceField: "dist.calculated",
+
+                //         spherical: true
+                //     }
+                // },
+                {
+                    $lookup:
+                    {
+                        from: "vehicleimages",
+                        localField: "_id",
+                        foreignField: "vehcileId",
+                        as: "images"
+                    }
+                }
+                ,
+                {
+                    $group: {
+                        _id: group,
+                        count: { $sum: 1 },
+                        details: { $push: '$$ROOT' }
+                    }
+                },
+
+                {
+                    $project: {
+                        "details._id": 1,
+                        "details.images": 1,
+                        "details.vehicleType": 1,
+                        "details.vehicleModel": 1,
+                        "details.hourlyRate": 1,
+                        "details.dayRate": 1,
+                        count: 1,
+                        "details.dist.calculated": 1,
+                    }
+                }
+            ]).then(result => {
+                resolve(result)
+            }).catch(error => {
+                if (error.errors)
+                    return reject(commonController.handleValidation(error))
+
+                return reject(error)
+            })
+        })
+    }
     displayBookings(data) {
         return new Promise((resolve, reject) => {
 

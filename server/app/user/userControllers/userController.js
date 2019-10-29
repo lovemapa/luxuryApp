@@ -73,6 +73,8 @@ class carRent {
             cun: data.cun,
             referralCode: data.referralCode,
             profilePic: data.profilePic,
+            deviceType: data.deviceType,
+            deviceId: data.deviceId,
             date: moment().valueOf()
         })
         return user
@@ -129,7 +131,7 @@ class carRent {
             }
 
             else {
-                userModel.findOne({ email: data.email }).then(result => {
+                userModel.findOneAndUpdate({ email: data.email }, { $set: { deviceId: data.deviceId } }, { new: true }).then(result => {
                     if (!result) {
                         reject(CONSTANT.NOTREGISTERED)
                     }
@@ -165,6 +167,8 @@ class carRent {
 
         })
     }
+
+
     displayHome(cordinates) {
         return new Promise((resolve, reject) => {
             vehicleModel.aggregate([
