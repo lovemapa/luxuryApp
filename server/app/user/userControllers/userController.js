@@ -171,6 +171,7 @@ class carRent {
 
     displayHome(cordinates) {
         return new Promise((resolve, reject) => {
+            let query = {}
             vehicleModel.aggregate([
 
                 {
@@ -179,7 +180,7 @@ class carRent {
                             type: "Point", coordinates: cordinates
                         },
                         includeLocs: "dist.location",
-                        maxDistance: 10000,
+                        maxDistance: 1500,
                         distanceField: "dist.calculated",
 
                         spherical: true
