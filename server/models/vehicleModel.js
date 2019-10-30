@@ -19,6 +19,7 @@ var vehicleModelSchema = new Schema({
     date: { type: Number },
     currentLat: { type: Number },
     currentLong: { type: Number },
+    events: [Number],
     location: {
         type: {
             type: String, default: "Point"

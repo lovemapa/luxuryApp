@@ -180,7 +180,7 @@ class carRent {
                             type: "Point", coordinates: cordinates
                         },
                         includeLocs: "dist.location",
-                        maxDistance: 1500,
+                        maxDistance: 2000,
                         distanceField: "dist.calculated",
 
                         spherical: true
@@ -561,6 +561,7 @@ class carRent {
         })
         return BookingRegistrationData;
     }
+
     getRequestList(data) {
         return new Promise((resolve, reject) => {
             if (!data.userId)

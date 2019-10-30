@@ -172,7 +172,7 @@ class owner {
     //Add Vehicle
     addVehicle(data, files) {
         return new Promise((resolve, reject) => {
-            console.log(files);
+
 
             var currentCoordinates = []
             var location = {}
@@ -199,6 +199,7 @@ class owner {
                 currentLat: Number(data.currentLat),
                 currentLong: Number(data.currentLong),
                 location: location,
+                events: data.events,
                 date: moment().valueOf()
 
             })
@@ -230,7 +231,7 @@ class owner {
 
             if (!_id)
                 reject(CONSTANT.OWNERIDMISSING)
-            vehicleModel.find({ ownerId: _id }).select(' vehicleType hourlyRate').populate("vehicleImages").then(result => {
+            vehicleModel.find({ ownerId: _id }).select('vehicleModel color vehicleType hourlyRate').populate("vehicleImages").then(result => {
                 console.log(_id);
 
                 if (!result) {

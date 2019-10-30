@@ -4,6 +4,7 @@ const carCategory = require('../../../models/carCategoryModel')
 const bookingModel = require('../../../models/bookingModel')
 const ownerModel = require('../../../models/ownerModel')
 const vehicleModel = require('../../../models/vehicleModel')
+const eventModel = require('../../../models/eventModel')
 const userModel = require('../../../models/userModel')
 const CONSTANT = require('../../../constant')
 const commonFunctions = require('../../common/controllers/commonFunctions')
@@ -577,5 +578,42 @@ class admin {
         return category
     }
 
+
+    addEvent(data) {
+
+        return new Promise((resolve, reject) => {
+            if (!data.eventType)
+                reject(CONSTANT.MISSINGPARAMS)
+            else {
+                const event = new eventModel({
+                    eventId: data.eventId,
+                    eventType: data.eventType
+                })
+
+                event.save({}).then(result => {
+                    resolve(result)
+                }).catch(error => {
+                    if (error.errors)
+                        return reject(commonController.handleValidation(error))
+                    return reject(error)
+                })
+            }
+        })
+    }
+
+    getEvents(data) {
+
+        return new Promise((resolve, reject) => {
+
+
+            eventModel.find({}).then(result => {
+                resolve(result)
+            }).catch(error => {
+                if (error.errors)
+                    return reject(commonController.handleValidation(error))
+                return reject(error)
+            })
+        })
+    }
 }
 module.exports = new admin()

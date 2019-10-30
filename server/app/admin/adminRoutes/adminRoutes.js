@@ -334,4 +334,37 @@ adminRoute.route('/addCategory')
         })
     })
 
+//add  Events
+adminRoute.route('/addEvent')
+    .post((req, res) => {
+        adminController.addEvent(req.body).then(result => {
+            return res.json({
+                success: CONSTANT.TRUE,
+                data: result,
+                message: CONSTANT.EVENTADDSUCEESS
+
+            })
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+    })
+
+//add  Events
+adminRoute.route('/getEvents')
+    .get((req, res) => {
+        adminController.getEvents().then(result => {
+            return res.json({
+                success: CONSTANT.TRUE,
+                data: result
+
+            })
+        }).catch(error => {
+            console.log(error);
+
+            return res.json({ message: error, status: CONSTANT.FALSESTATUS, success: CONSTANT.FALSE })
+        })
+    })
+
 module.exports = adminRoute
